@@ -91,36 +91,13 @@
   <div class="journey__stage" id="stage">
 
     <!-- top-down world: road, pier, sea, ship -->
-    <div class="seabg" id="seabg" aria-hidden="true"><img src="assets/uc/ocean.jpg" alt=""><video src="assets/uc/sea.mp4" poster="assets/uc/sea-poster.jpg" autoplay muted loop playsinline></video></div>
     <svg class="world" id="worldSvg" aria-hidden="true">
-      <defs>
-        <linearGradient id="seaG" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#0b2fa0"/><stop offset=".5" stop-color="#0a2687"/><stop offset="1" stop-color="#061a66"/>
-        </linearGradient>
-        <linearGradient id="coastG" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
-        </linearGradient>
-        <pattern id="waveP" width="260" height="180" patternUnits="userSpaceOnUse">
-          <path d="M10 40 q30 -14 60 0 M120 110 q35 -16 70 0 M190 30 q20 -10 40 0 M40 150 q25 -12 50 0" fill="none" stroke="#3f63d8" stroke-width="3" stroke-linecap="round" opacity=".55"/>
-        </pattern>
-        <filter id="blurW" x="-50%" y="-20%" width="200%" height="140%"><feGaussianBlur stdDeviation="26"/></filter>
-        <linearGradient id="hullG" x1="0" x2="1"><stop offset="0" stop-color="#0d1730"/><stop offset=".5" stop-color="#2a3a60"/><stop offset="1" stop-color="#0d1730"/></linearGradient>
-        <linearGradient id="roofG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f9"/><stop offset=".5" stop-color="#d4d8df"/><stop offset="1" stop-color="#a9aeb9"/></linearGradient>
-        <linearGradient id="wakeG" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stop-color="#dfe9ff" stop-opacity=".85"/><stop offset="1" stop-color="#dfe9ff" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
       <g id="world">
-        <g id="land">
-          <rect x="-9000" y="-9000" width="18000" height="10902" fill="#fff"/>
-          <rect x="-9000" y="1900" width="18000" height="420" fill="url(#coastG)"/>
-        </g>
         <g id="road">
-          <path id="roadPath" d="M -3000 0 H -500 A 500 500 0 0 1 0 500 V 2600" fill="none" stroke="#111216" stroke-width="220"/>
-          <path d="M -3000 55 H -500 A 445 445 0 0 1 -55 500 V 2600" fill="none" stroke="#3b3d44" stroke-width="4" stroke-dasharray="46 40"/>
-          <path d="M -3000 -55 H -500 A 555 555 0 0 1 55 500 V 2600" fill="none" stroke="#3b3d44" stroke-width="4" stroke-dasharray="46 40"/>
+          <path id="roadPath" d="M -3000 0 H -500 A 500 500 0 0 1 0 500 V 12000" fill="none" stroke="#0c0c0c" stroke-width="395"/>
+          <path d="M -3000 98 H -500 A 402 402 0 0 1 -98 500 V 12000" fill="none" stroke="#3b3d44" stroke-width="5" stroke-dasharray="70 60"/>
+          <path d="M -3000 -98 H -500 A 598 598 0 0 1 98 500 V 12000" fill="none" stroke="#3b3d44" stroke-width="5" stroke-dasharray="70 60"/>
         </g>
-        <image id="ship" href="assets/uc/ship.avif" x="-175" y="2560" width="350" height="1713.6"/>
         <g id="truckTop">
           <rect x="-190" y="-40" width="380" height="96" rx="8" fill="#000" opacity=".45" style="filter:blur(9px)"/>
           <image id="contTop" href="assets/uc/container-top.avif" x="-200" y="-56.2" width="400" height="112.4"/>
@@ -178,48 +155,56 @@
         </div>
       </div>
 
-    <!-- reliability overlay (top-down road) -->
+    <!-- reliability: heading stays put, the list scrolls past the truck -->
     <div class="rel" id="rel">
-      <div class="rel__left">
-        <p class="eyebrow">Reliability</p>
-        <h2 class="h2">On time, at every milestone</h2>
+      <div class="rel__left" id="relLeft">
+        <div><p class="eyebrow">Reliability</p><h2 class="h2">On time, at every milestone</h2></div>
+        <p>One accountable team, from pickup to proof of delivery.</p>
       </div>
-      <div class="rel__right">
+      <div class="rel__right" id="relRight">
         <div class="rel__item"><span>01</span><h3>Live tracking</h3><p>Every milestone, in real time.</p></div>
         <div class="rel__item"><span>02</span><h3>Global network</h3><p>Every major trade lane.</p></div>
         <div class="rel__item"><span>03</span><h3>24/7 support</h3><p>Real people, always on.</p></div>
       </div>
     </div>
 
-    <!-- why-us overlay (ship) -->
+    <!-- sea: slides up over the road, then the ship zooms out -->
+    <div class="sea" id="sea" aria-hidden="true">
+      <div class="sea__bg" id="seaBg"><img src="assets/uc/ocean.jpg" alt=""></div>
+      <div class="sea__clip"><div class="sea__wakew" id="wakeW"><video class="sea__wake" src="assets/uc/sea.mp4" poster="assets/uc/sea-poster.jpg" autoplay muted loop playsinline></video></div></div>
+      <div class="sea__ship" id="shipW"><div class="sea__bob"><img src="assets/uc/ship.avif" alt=""></div></div>
+      
+      <img class="decor decor--1" src="assets/uc/cloud-left.avif" alt="">
+      <img class="decor decor--2" src="assets/uc/cloud-right.avif" alt="">
+    </div>
+
+    <!-- why us: scrolls up over the sea -->
     <div class="why" id="why">
-      <p class="eyebrow">Why us</p>
-      <h2 class="h2">Works as hard as you do.</h2>
-      <div class="why__pts">
-        <div class="why__pt"><span>01</span><h3>One point of contact</h3></div>
-        <div class="why__pt"><span>02</span><h3>Full visibility</h3></div>
-        <div class="why__pt"><span>03</span><h3>Trusted compliance</h3></div>
-        <div class="why__pt"><span>04</span><h3>Clear pricing</h3></div>
+      <div class="why__flow" id="whyFlow">
+        <div class="why__head" id="whyHead"><p class="eyebrow">Why us</p><h2 class="h2">Works as hard as you do.</h2></div>
+        <div class="why__pt why__pt--l" style="top:63vh"><span>01</span><h3>One point of contact</h3></div>
+        <div class="why__pt why__pt--r" style="top:63vh"><span>02</span><h3>Full visibility</h3></div>
+        <div class="why__pt why__pt--l" style="top:97.4vh"><span>03</span><h3>Trusted compliance</h3></div>
+        <div class="why__pt why__pt--r" style="top:97.4vh"><span>04</span><h3>Clear pricing</h3></div>
+        <div class="why__pt why__pt--c" style="top:131.7vh"><span>05</span><h3>Fast issue resolution</h3></div>
       </div>
     </div>
 
-    <div class="clouds" id="clouds" aria-hidden="true">
-      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    <div class="clouds" id="clouds" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <!-- testimonials page: wiped in behind the plane -->
+    <div class="tpage" id="tpage">
+      <div class="tpage__head"><p class="eyebrow">Clients</p><h2 class="h2">Trusted across the region</h2></div>
+      <figure class="quote tpage__quote"><blockquote>“Our business would not run without this team.”</blockquote>
+        <figcaption><div class="avatar" style="--h:210"></div><b>Placeholder Client</b><span>Director, retail</span></figcaption></figure>
     </div>
-    <div class="whiteout" id="whiteout" aria-hidden="true"></div>
+    <div class="tplane" id="tplane" aria-hidden="true"><img src="assets/uc/plane.avif" alt=""></div>
   </div>
 </section>
 
-<!-- ============ TESTIMONIALS ============ -->
+<!-- ============ TESTIMONIALS (continues from the pinned page above) ============ -->
 <section class="testi" id="clients">
-  <img class="plane" id="plane" src="assets/uc/plane.avif" alt="">
-  <div class="testi__head">
-    <p class="eyebrow">Clients</p>
-    <h2 class="h2" data-fill>Trusted across the region</h2>
-  </div>
   <div class="testi__list">
-    <figure class="quote"><blockquote>“Our business would not run without this team.”</blockquote>
-      <figcaption><div class="avatar" style="--h:210"></div><b>Placeholder Client</b><span>Director, retail</span></figcaption></figure>
     <figure class="quote"><blockquote>“Delivered right, the first time.”</blockquote>
       <figcaption><div class="avatar" style="--h:20"></div><b>Placeholder Client</b><span>Supply chain lead, telecom</span></figcaption></figure>
     <figure class="quote"><blockquote>“Always available. The savings were real.”</blockquote>

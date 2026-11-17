@@ -190,11 +190,12 @@
     frame: 0, craneX: -19.3, sqY: 0, sqR: 0, sqS: 1, stackX: 0, stackS: 1, stackY: 0, stackB: 0, craneWX: 0,
     truckX: 100, wheel: 0, sceneS: 1, sceneX: 0, sceneY: 0, sceneB: 0, topY: 0, innerS: 1, innerX: 0, tk: 0, tframe: 0,
     gt: 90.74, gb: 0,                 // ground band (vh)
-    d: 1100, cy: 0, z: 1, zk: 1       // scenes B + C camera
+    d: 1100, zr: 0, oy: 0,            // road: distance along it, zoom-out progress, truck offset (vh)
+    seaY: 100, ship: 1, relY: 109.75, relL: 0, whyY: 109.75   // sea / lists, in vh
   };
   const T_SWAP = 450, T_TSQ = 925, T_WORLD = 990;
-  const z0 = () => (.448 * vw / 400) / (.36 * vh / 220);          // world zoom that matches the side-view truck
-  const bandGt = () => (100 - 220 * (.448 * vw / 400) / vh * 100) / 2;
+  const yz = () => (innerWidth < 820 ? 1.9 : 1);                   // phones get a zoomed-in yard
+  const sea = el('sea'), seaBg = el('seaBg'), shipW = el('shipW'), relRight = el('relRight'), relLeft = el('relLeft'), whyFlow = el('whyFlow'), side = el('side'), wakeW = el('wakeW');
   let vw = innerWidth, vh = innerHeight;
   const cam = { x: 0, y: 0, s: 1, on: false };
 
@@ -203,6 +204,7 @@
     stage.style.setProperty('--gb', st.gb + 'vh');
 
     // A — yard
+    const Z = yz();
     const t = tl.time(), put = t >= T_SWAP, top = t >= T_TSQ;
     craneSeq.draw(st.frame); truckSeq.draw(st.tframe);
     scene.style.transform = `translate(${st.sceneX}%, ${st.sceneY}vw) scale(${st.sceneS})`;
@@ -214,33 +216,42 @@
     craneSq.style.visibility = put ? 'hidden' : 'visible';
     craneBot.style.visibility = craneTop.style.visibility = put ? 'visible' : 'hidden';
     craneTop.style.transform = `translateY(${st.topY}%)`;
-    truckW.style.transform = `translateX(${st.truckX}vw)`;
+    truckW.style.transform = `scale(${Z}) translateX(${st.truckX}vw)`; side.style.transform = `scale(${Z})`;
     truckCont.style.visibility = put ? 'visible' : 'hidden';
     truckParts.style.visibility = top ? 'hidden' : 'visible';
     truckSq.style.visibility = top ? 'visible' : 'hidden';
     truckSq.style.transform = `scale(${1 + .086 * st.tk})`;
-    const ty = st.tk * ((50 - st.gt) / 100 * vh + .0499 * vw);
-    truckInner.style.transform = `translate(${st.innerX * (1 - st.tk) + st.tk * 15.97}vw, ${ty}px) scale(${st.innerS})`;
+    const ty = st.tk * ((50 - st.gt) / 100 * vh / Z + .0499 * vw);
+    truckInner.style.transform = `translate(${st.innerX * (1 - st.tk) + st.tk * (8 / Z + 7.97)}vw, ${ty}px) scale(${st.innerS})`;
     wheels.forEach(w => { w.style.transform = `rotate(${st.wheel}deg)`; });
     lane.style.backgroundPositionX = st.wheel * .5 + 'px';
 
-    // B + C — top-down world
-    const s = .36 * vh / 220 * st.z * (1 + (z0() - 1) * st.zk);
-    const p = roadPath.getPointAtLength(st.d), q = roadPath.getPointAtLength(st.d + 2);
-    const ang = Math.atan2(q.y - p.y, q.x - p.x) * 57.2958;
-    truckTop.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang})`);
+    // B — top-down road. Road is 395 units wide: 60vh at the handover, 29.9vh once zoomed out.
+    const sA = .6 * vh / 395, sR = .299 * vh / 395, s = sA + (sR - sA) * st.zr;
+    const k0 = .448 * vw * Z / (400 * sA), k1 = .3025 * vh / (400 * sR), k = k0 + (k1 - k0) * st.zr;
+    const p = roadPath.getPointAtLength(st.d);
     const tan = dd => { const a = roadPath.getPointAtLength(dd), b = roadPath.getPointAtLength(dd + 2); return Math.atan2(b.y - a.y, b.x - a.x) * 57.2958; };
-    cabTop.setAttribute('transform', `rotate(${(tan(st.d + 120) - ang) * .5} 110 0)`);   // cab leads into the bend,
-    contTop.setAttribute('transform', `rotate(${(tan(st.d - 130) - ang) * .5} 110 0)`);  // trailer swings out behind it
-    world.setAttribute('transform', `translate(${vw / 2} ${vh / 2}) scale(${s}) translate(${-p.x} ${-(p.y + st.cy)})`);
-    cam.x = p.x; cam.y = p.y + st.cy; cam.s = s; cam.on = tl.time() > T_WORLD;
+    const ang = tan(st.d);
+    truckTop.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang}) scale(${k})`);
+    cabTop.setAttribute('transform', `rotate(${(tan(st.d + 160) - ang) * .5} 110 0)`);    // cab leads into the bend,
+    contTop.setAttribute('transform', `rotate(${(tan(st.d - 170) - ang) * .5} 110 0)`);   // trailer swings out behind it
+    world.setAttribute('transform', `translate(${vw / 2} ${vh / 2 + st.oy * vh / 100}) scale(${s}) translate(${-p.x} ${-p.y})`);
+    relRight.style.transform = `translateY(${st.relY}vh)`; relLeft.style.transform = `translateY(${st.relL}vh)`;
+
+    // C — sea
+    sea.style.transform = `translateY(${st.seaY}vh)`;
+    shipW.style.transform = wakeW.style.transform = `scale(${st.ship})`;
+    const fog = st.seaY > 0 ? `linear-gradient(transparent ${15.6 * st.seaY / 100}%, #000 ${15.6 * st.seaY / 100 + 14}%)` : 'none';   // ship fades in above the waterline
+    shipW.style.webkitMaskImage = shipW.style.maskImage = fog;
+    seaBg.style.transform = `scale(${1 + (st.ship - .082) * .9})`;
+    whyFlow.style.transform = `translateY(${st.whyY}vh)`;
   }
 
   const io = 'power2.inOut';
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: {
-      trigger: '#journey', start: 'top top', end: () => '+=' + innerHeight * 15.85,
+      trigger: '#journey', start: 'top top', end: () => '+=' + innerHeight * 20.36,
       pin: stage, scrub: .7, invalidateOnRefresh: true, anticipatePin: 1,
       onRefresh: () => { vw = innerWidth; vh = innerHeight; render(); }
     },
@@ -277,33 +288,57 @@
     .to(bigtext, { opacity: 0, duration: 30 }, 925)
     .to(st, { tframe: 44, duration: 80 }, 920)
     .to(st, { tk: 1, duration: 75, ease: sine }, T_TSQ)
-    .to(st, { gt: bandGt, gb: bandGt, duration: 70, ease: sine }, T_TSQ)
-    .fromTo(['#worldSvg', '#seabg'], { autoAlpha: 0 }, { autoAlpha: 1, duration: 1 }, T_WORLD)
+    .to(st, { gt: 20, gb: 20, duration: 70, ease: sine }, T_TSQ)
+    .fromTo('#worldSvg', { autoAlpha: 0 }, { autoAlpha: 1, duration: 1 }, T_WORLD)
     .to(['#side', '#ground', '#truckW'], { opacity: 0, duration: 8 }, T_WORLD + 2);
 
-  // B + C keep their own pacing (old units), mapped onto the vh timeline after scene A
-  const K = 45, P = v => 1000 + (v - 11.2) * K;
+  /* B + C: offsets are vh of scroll after the truck reaches the road (t = 1000), measured on the reference.
+     Anything that "scrolls normally" there is moved 1vh per unit here, so it reads the same while pinned. */
+  const B = 1000, out = 'power2.out';
   tl
-  // B — road
-    .to(st, { d: 5485, duration: 6 * K }, P(11.2))
-    .to(st, { zk: 0, duration: 1.4 * K, ease: sine }, P(11.2))
-    .fromTo('#rel', { autoAlpha: 0 }, { autoAlpha: 1, duration: .3 * K }, P(14.0))
-    .from('.rel__left > *', { opacity: 0, y: 30, stagger: .12 * K, duration: .4 * K }, P(14.0))
-    .from('.rel__item', { opacity: 0, y: 30, stagger: .25 * K, duration: .4 * K }, P(14.2))
-    .to('#rel', { autoAlpha: 0, duration: .35 * K }, P(15.75))
-  // C — sea
-    .to(truckTop, { opacity: 0, duration: .3 * K }, P(17.0))
-    .to(st, { cy: 520, duration: 1.8 * K, ease: 'power1.inOut' }, P(17.2))
-    .to('#road', { opacity: 0, duration: .5 * K }, P(19))
-    .to('#land', { opacity: 0, duration: .8 * K }, P(19))
-    .to(st, { z: .27, cy: 717, duration: 2 * K, ease: io }, P(19))
-    .fromTo('#why', { autoAlpha: 0 }, { autoAlpha: 1, duration: .1 * K }, P(20.3))
-    .from(['#why .eyebrow', '#why .h2'], { opacity: 0, y: 40, stagger: .15 * K, duration: .6 * K }, P(20.3))
-    .from('.why__pt', { opacity: 0, y: 24, stagger: .3 * K, duration: .5 * K }, P(20.9))
-    .to(st, { z: .2, duration: 1.6 * K, ease: 'power1.in' }, P(22.6))
-    .fromTo('.clouds i', { opacity: 0, scale: .45 }, { opacity: 1, scale: 1.5, stagger: .1 * K, duration: 1 * K, ease: 'power1.in' }, P(22.5))
-    .to('#why', { autoAlpha: 0, duration: .4 * K }, P(23.2))
-    .to('#whiteout', { opacity: 1, duration: .6 * K }, P(23.6));
+  // road: round the bend, zoom out, then the road scrolls under a truck that holds its place
+    .to(st, { d: 3400, duration: 100, ease: 'power1.inOut' }, B)
+    .to(st, { zr: 1, oy: 13, duration: 50, ease: sine }, B + 50)
+    .to(st, { d: 3400 + 13.21 * 180, duration: 180 }, B + 100)
+    .to(st, { oy: 0, duration: 70 }, B + 140)
+    .fromTo('#rel', { autoAlpha: 0 }, { autoAlpha: 1, duration: 1 }, B + 88)
+    .from('#relLeft > *', { opacity: 0, y: 40, stagger: 10, duration: 30, ease: out }, B + 90)
+    .to(st, { relY: -90.25, duration: 200 }, B + 100)                         // list scrolls 1:1
+    .from('.rel__item', { opacity: 0, y: 40, stagger: 58.3, duration: 22, ease: out }, B + 122)
+    .to(st, { relL: -70, duration: 70 }, B + 262)
+    .to('#rel', { autoAlpha: 0, duration: 1 }, B + 335)
+  // sea: slides up 1:1 over the road with the ship already in place, then the ship zooms out
+    .fromTo('#sea', { autoAlpha: 0 }, { autoAlpha: 1, duration: 1 }, B + 159)
+    .to(st, { seaY: 0, duration: 100 }, B + 160)
+    .to('#worldSvg', { autoAlpha: 0, duration: 1 }, B + 262)
+    .to(st, { ship: .082, duration: 556, ease: sine }, B + 360)
+    .fromTo('.decor--1', { xPercent: -60, opacity: .3 }, { xPercent: 30, opacity: 0, duration: 190, ease: sine }, B + 560)
+    .fromTo('.decor--2', { xPercent: 60, opacity: .8 }, { xPercent: 0, opacity: 0, duration: 190, ease: sine }, B + 560)
+  // why us: heading and points scroll up through the frame
+    .fromTo('#why', { autoAlpha: 0 }, { autoAlpha: 1, duration: 1 }, B + 648)
+    .to(st, { whyY: -156.25, duration: 266 }, B + 650)
+    .fromTo('#whyHead', { scale: .9, opacity: .7, filter: 'blur(2px)' }, { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 50 }, B + 660)
+    .from('.why__pt--l', { x: () => -innerWidth * .11, y: () => innerHeight * .16, stagger: 34.4, duration: 70, ease: out }, B + 723)
+    .from('.why__pt--r', { x: () => innerWidth * .11, y: () => innerHeight * .16, stagger: 34.4, duration: 70, ease: out }, B + 723)
+    .from('.why__pt--c', { y: () => innerHeight * .2, duration: 70, ease: out }, B + 792)
+  // clouds close over the sea, then lift away as the plane page arrives
+    .fromTo('#clouds', { opacity: 0 }, { opacity: 1, duration: 123, ease: out }, B + 785)
+    .fromTo('.clouds i', { scale: i => [5, 8, 5, 2, 5, 4, 5][i], opacity: 0 }, { scale: 1, opacity: 1, duration: 140, stagger: 16, ease: out }, B + 785)
+    .to('#why', { opacity: .9, duration: 100 }, B + 785)
+    .to('#clouds', { scale: .8, yPercent: -55, duration: 100, ease: out }, B + 936);
+
+  // plane + page wipe run past the end of the pin (they finish while the page scrolls away)
+  const pinST = tl.scrollTrigger, tpage = el('tpage');
+  const wipe = { c: -60 }, planeImg = $('#tplane img');
+  const planeTravel = () => innerWidth / 2 + Math.max(planeImg.offsetWidth, innerHeight) * .5 + innerWidth * .1;   // fully off-screen either side
+  gsap.set('#tplane', { x: -planeTravel() });
+  gsap.timeline({
+    defaults: { ease: out, duration: 1 },
+    scrollTrigger: { trigger: '#journey', start: () => pinST.start + innerHeight * 19.36, end: () => pinST.start + innerHeight * 21.36, scrub: true, invalidateOnRefresh: true }
+  })
+    .to(wipe, { c: 180, onUpdate: () => { tpage.style.clipPath = `polygon(0 0, ${wipe.c}% 0, ${wipe.c - 40}% 100%, 0 100%)`; } }, 0)
+    .fromTo('#tplane', { x: () => -planeTravel(), scale: 1 }, { x: () => planeTravel() * 1.05, scale: 1.3 }, 0);
+  tpage.style.clipPath = 'polygon(0 0, -60% 0, -100% 100%, 0 100%)';
   render();
 
   // speedometer driven by real scroll velocity
@@ -315,10 +350,6 @@
   });
 
   /* ---------- testimonials: plane fly-over ---------- */
-  gsap.fromTo('#plane', { x: () => -innerWidth * .75, y: () => innerHeight * .1 }, {
-    x: () => innerWidth * .95, y: () => -innerHeight * .08, ease: 'none',
-    scrollTrigger: { trigger: '.testi', start: 'top bottom', end: 'bottom top', scrub: .8, invalidateOnRefresh: true }
-  });
   $$('.quote').forEach(q => gsap.from(q, { opacity: 0, y: 60, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: q, start: 'top 85%' } }));
 
   /* ---------- partners ---------- */

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northlane Freight — One operator, every leg</title>
+<meta name="description" content="Practice build: a scroll-driven logistics site. Air, ocean, customs, warehousing and road freight under one team.">
+<link rel="stylesheet" href="vendor/lenis.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="is-loading">
+
+<!-- ============ LOADER ============ -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader__brand">NORTHLANE</div>
+  <canvas class="dotmap" data-dotmap data-color="#3a3f4d" data-accent="#2a45ff"></canvas>
+  <ul class="loader__list">
+    <li>Sydney</li><li>Auckland</li><li>Hong Kong</li><li>Shenzhen</li><li>Ho Chi Minh</li><li>Los Angeles</li><li>Bangkok</li><li>Hamburg</li><li>London</li>
+  </ul>
+  <div class="loader__count"><span id="loaderNum">00</span></div>
+</div>
+
+<!-- ============ CHROME ============ -->
+<header class="header">
+  <a class="logo" href="#top" aria-label="Northlane Freight home">NORTHLANE</a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><span>Menu</span><i></i></button>
+</header>
+<a class="side-tab" href="#contact">Work with us</a>
+<div class="hud" id="hud" aria-hidden="true"><b id="hudNum">00</b> km/h</div>
+
+<nav class="menu" id="menu" aria-hidden="true">
+  <ul>
+    <li><a href="#top"><span>Home</span></a></li>
+    <li><a href="#about"><span>About</span></a></li>
+    <li><a href="#journey"><span>Services</span></a></li>
+    <li><a href="#clients"><span>Clients</span></a></li>
+    <li><a href="#insights"><span>Insights</span></a></li>
+    <li><a href="#faq"><span>F.A.Q</span></a></li>
+    <li><a href="#contact"><span>Contact</span></a></li>
+  </ul>
+  <p class="menu__foot">hello@northlane.example</p>
+</nav>
+
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
+  <svg class="hero__globe" viewBox="0 0 800 800" aria-hidden="true">
+    <defs>
+      <radialGradient id="gRim" cx="50%" cy="50%" r="50%">
+        <stop offset="88%" stop-color="#ff7a1a" stop-opacity="0"/>
+        <stop offset="97%" stop-color="#ff7a1a" stop-opacity=".9"/>
+        <stop offset="100%" stop-color="#ffb37a" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="400" cy="400" r="390" fill="#05060c"/>
+    <circle cx="400" cy="400" r="398" fill="url(#gRim)"/>
+    <g class="routes" fill="none" stroke="#ff8a3a" stroke-width="1.6" stroke-linecap="round">
+      <path d="M120 420 Q260 200 470 330"/>
+      <path d="M170 560 Q330 380 560 470"/>
+      <path d="M90 300 Q240 140 380 210"/>
+      <path d="M260 640 Q420 500 610 600"/>
+    </g>
+    <g fill="#fff">
+      <circle cx="120" cy="420" r="4"/><circle cx="470" cy="330" r="4"/><circle cx="170" cy="560" r="4"/>
+      <circle cx="560" cy="470" r="4"/><circle cx="90" cy="300" r="4"/><circle cx="380" cy="210" r="4"/>
+      <circle cx="260" cy="640" r="4"/><circle cx="610" cy="600" r="4"/>
+    </g>
+  </svg>
+  <div class="hero__inner">
+    <p class="eyebrow">One operator</p>
+    <h1 class="h1" data-lines>
+      <span class="line"><span>Every leg</span></span>
+      <span class="line"><span>of the journey</span></span>
+    </h1>
+    <p class="hero__lede">Air, ocean, customs and road freight run by a single accountable team — so nothing gets lost between hand-offs.</p>
+    <div class="hero__cta">
+      <a class="btn btn--light" href="#contact">Talk with us</a>
+      <a class="btn btn--ghost" href="#journey">Our services</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INTRO / STATS ============ -->
+<section class="intro" id="about">
+  <div class="intro__left">
+    <div class="intro__thumb" aria-hidden="true"></div>
+    <h2 class="h2" data-fill>We move freight. We own the outcome.</h2>
+  </div>
+  <div class="intro__right">
+    <p class="body-lg" data-fill>With every service under one roof, your supply chain moves the way your business needs it to: predictably, visibly, and without excuses. No finger-pointing between vendors. No delays lost in the gaps.</p>
+    <a class="btn btn--line" href="#journey">How we work</a>
+    <div class="stats">
+      <div class="stat"><h3><span data-count="2500" data-sep>0</span>+</h3><p>Shipments per month</p></div>
+      <div class="stat"><h3><span data-count="98.2" data-dec="1">0</span>%</h3><p>On-time delivery rate</p></div>
+      <div class="stat"><h3><span data-count="8">0</span>+</h3><p>Years in operation</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JOURNEY (pinned scroll film) ============ -->
+<section class="journey" id="journey">
+  <div class="journey__stage" id="stage">
+
+    <!-- top-down world: road, pier, sea, ship -->
+    <svg class="world" id="worldSvg" aria-hidden="true">
+      <defs>
+        <linearGradient id="seaG" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0b2fa0"/><stop offset=".5" stop-color="#0a2687"/><stop offset="1" stop-color="#061a66"/>
+        </linearGradient>
+        <linearGradient id="coastG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+        <pattern id="waveP" width="260" height="180" patternUnits="userSpaceOnUse">
+          <path d="M10 40 q30 -14 60 0 M120 110 q35 -16 70 0 M190 30 q20 -10 40 0 M40 150 q25 -12 50 0" fill="none" stroke="#3f63d8" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+        </pattern>
+        <linearGradient id="wakeG" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#dfe9ff" stop-opacity=".85"/><stop offset="1" stop-color="#dfe9ff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g id="world">
+        <g id="sea">
+          <rect x="-9000" y="1900" width="18000" height="9000" fill="url(#seaG)"/>
+          <rect x="-9000" y="1900" width="18000" height="9000" fill="url(#waveP)"/>
+          <rect x="-9000" y="1900" width="18000" height="420" fill="url(#coastG)"/>
+        </g>
+        <g id="seaCover" opacity="0">
+          <rect x="-9000" y="-4000" width="18000" height="5905" fill="#0b2fa0"/>
+          <rect x="-9000" y="-4000" width="18000" height="5905" fill="url(#waveP)"/>
+        </g>
+        <g id="wake" opacity="0">
+          <path d="M-150 2600 L-620 300 L-250 300 L-60 2560 Z" fill="url(#wakeG)"/>
+          <path d="M150 2600 L620 300 L250 300 L60 2560 Z" fill="url(#wakeG)"/>
+          <path d="M-70 2560 L-90 700 L90 700 L70 2560 Z" fill="url(#wakeG)" opacity=".7"/>
+          <path class="wake-dash" d="M-160 2700 L-640 300 M160 2700 L640 300 M-110 2600 L-380 300 M110 2600 L380 300" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-dasharray="60 110" opacity=".7"/>
+        </g>
+        <g id="road">
+          <path id="roadPath" d="M -3000 0 H -500 A 500 500 0 0 1 0 500 V 2600" fill="none" stroke="#111216" stroke-width="220"/>
+          <path d="M -3000 55 H -500 A 445 445 0 0 1 -55 500 V 2600" fill="none" stroke="#3b3d44" stroke-width="4" stroke-dasharray="46 40"/>
+          <path d="M -3000 -55 H -500 A 555 555 0 0 1 55 500 V 2600" fill="none" stroke="#3b3d44" stroke-width="4" stroke-dasharray="46 40"/>
+        </g>
+        <g id="ship">
+          <path d="M-175 2560 H175 V4150 Q175 4400 0 4560 Q-175 4400 -175 4150 Z" fill="#16233f"/>
+          <path d="M-158 2580 H158 V4140 Q158 4370 0 4520 Q-158 4370 -158 4140 Z" fill="#2c3a5c"/>
+          <g id="deck"></g>
+          <rect x="-150" y="2880" width="300" height="96" rx="6" fill="#eef1f6"/>
+          <rect x="-120" y="2896" width="240" height="26" rx="3" fill="#1b2a4d"/>
+          <circle cx="-90" cy="2950" r="12" fill="#c9cfdb"/><circle cx="90" cy="2950" r="12" fill="#c9cfdb"/>
+        </g>
+        <g id="truckTop">
+          <rect x="-205" y="-33" width="296" height="66" rx="4" fill="#d9dce2"/>
+          <g stroke="#b9bdc6" stroke-width="2"><path d="M-180 -33V33M-155 -33V33M-130 -33V33M-105 -33V33M-80 -33V33M-55 -33V33M-30 -33V33M-5 -33V33M20 -33V33M45 -33V33M70 -33V33"/></g>
+          <rect x="96" y="-22" width="20" height="44" fill="#30333a"/>
+          <rect x="112" y="-31" width="66" height="62" rx="8" fill="#3a3e47"/>
+          <rect x="150" y="-27" width="20" height="54" rx="5" fill="#9fb4d6"/>
+        </g>
+      </g>
+    </svg>
+
+    <!-- big ghost title that slides behind the truck -->
+    <div class="bigtext" id="bigtext" aria-hidden="true">OUR SERVICES — OUR SERVICES —</div>
+
+    <!-- side-view yard scene -->
+    <div class="side" id="side">
+      <svg viewBox="0 0 1600 720" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <defs>
+          <pattern id="corr" width="14" height="10" patternUnits="userSpaceOnUse"><rect width="14" height="10" fill="none"/><path d="M7 0V10" stroke="#000" stroke-opacity=".16" stroke-width="2"/></pattern>
+          <g id="wheelS"><circle r="28" fill="#15161a"/><circle r="13" fill="#8a8f9a"/><path d="M-13 0H13M0 -13V13" stroke="#15161a" stroke-width="4"/></g>
+          <g id="wheelL"><circle r="48" fill="#15161a"/><circle r="22" fill="#19a3b8"/><path d="M-22 0H22M0 -22V22" stroke="#15161a" stroke-width="6"/></g>
+        </defs>
+
+        <!-- container stack -->
+        <g id="stack">
+          <rect x="1050" y="610" width="210" height="110" fill="#1d3f9c"/><rect x="1050" y="610" width="210" height="110" fill="url(#corr)"/>
+          <rect x="1270" y="610" width="210" height="110" fill="#e2622a"/><rect x="1270" y="610" width="210" height="110" fill="url(#corr)"/>
+        </g>
+
+        <!-- truck -->
+        <g id="truck">
+          <rect x="535" y="630" width="470" height="16" fill="#22252b"/>
+          <rect x="560" y="646" width="230" height="14" fill="#30333a"/>
+          <rect x="840" y="646" width="10" height="50" fill="#30333a"/>
+          <g class="tw" data-cx="600" data-cy="692"><use href="#wheelS"/></g>
+          <g class="tw" data-cx="665" data-cy="692"><use href="#wheelS"/></g>
+          <g class="tw" data-cx="730" data-cy="692"><use href="#wheelS"/></g>
+          <rect x="950" y="650" width="175" height="22" fill="#22252b"/>
+          <path d="M1012 668 V548 Q1012 538 1024 538 H1088 Q1100 538 1106 552 L1124 604 V668 Z" fill="#2b2e36"/>
+          <path d="M1060 556 H1088 L1108 604 H1060 Z" fill="#9fb4d6"/>
+          <rect x="1116" y="640" width="14" height="20" fill="#f3c24a"/>
+          <g class="tw" data-cx="975" data-cy="692"><use href="#wheelS"/></g>
+          <g class="tw" data-cx="1085" data-cy="692"><use href="#wheelS"/></g>
+        </g>
+
+        <!-- the travelling container -->
+        <g id="cont">
+          <rect width="430" height="110" fill="#d9dce2"/><rect width="430" height="110" fill="url(#corr)"/>
+          <rect width="430" height="110" fill="none" stroke="#b3b8c2" stroke-width="4"/>
+        </g>
+
+        <!-- reach stacker -->
+        <g id="stacker">
+          <line id="boom" x1="540" y1="500" x2="1265" y2="466" stroke="#19a3b8" stroke-width="30" stroke-linecap="round"/>
+          <line id="boom2" x1="540" y1="500" x2="1265" y2="466" stroke="#0e2e5c" stroke-width="16" stroke-linecap="round" stroke-dasharray="1 0"/>
+          <g id="spreader">
+            <rect x="-22" y="-44" width="44" height="34" rx="4" fill="#0e2e5c"/>
+            <rect x="-222" y="-12" width="444" height="12" fill="#f3c24a"/>
+            <rect x="-222" y="-12" width="14" height="20" fill="#22252b"/><rect x="208" y="-12" width="14" height="20" fill="#22252b"/>
+          </g>
+          <rect x="522" y="486" width="40" height="120" rx="4" fill="#0e2e5c"/>
+          <rect x="500" y="596" width="320" height="56" rx="10" fill="#19a3b8"/>
+          <rect x="492" y="560" width="78" height="92" rx="8" fill="#127f90"/>
+          <rect x="640" y="524" width="84" height="74" rx="8" fill="#0e2e5c"/>
+          <rect x="652" y="534" width="60" height="38" rx="4" fill="#9fd7e6"/>
+          <g class="sw" data-cx="570" data-cy="672"><use href="#wheelL"/></g>
+          <g class="sw" data-cx="760" data-cy="672"><use href="#wheelL"/></g>
+        </g>
+      </svg>
+    </div>
+
+    <!-- rising ground with services -->
+    <div class="ground" id="ground">
+      <div class="ground__lane" id="lane"></div>
+      <div class="ground__track" id="track">
+        <div class="ground__head">
+          <h2 class="h2">Everything your freight needs. <em>Under one group.</em></h2>
+          <p>From air to sea, from customs clearance to final delivery — one partner, one point of contact, and full visibility from origin to destination.</p>
+        </div>
+        <article class="card"><span>01</span><h3>Air freight</h3><p>Express, priority and deferred options across global lanes, managed end to end for speed and schedule integrity.</p></article>
+        <article class="card"><span>02</span><h3>Ocean freight</h3><p>Full-container, shared-container and specialised cargo, with carrier selection tuned for cost and reliability.</p></article>
+        <article class="card"><span>03</span><h3>Customs brokerage</h3><p>In-house licensed brokers covering classification, compliance and quarantine. Nothing outsourced.</p></article>
+        <article class="card"><span>04</span><h3>Warehousing &amp; 3PL</h3><p>Scalable storage, pick and pack, and distribution wired straight into freight and transport.</p></article>
+        <article class="card"><span>05</span><h3>Project cargo</h3><p>Oversized and complex moves, from permits and surveys to engineered load plans.</p></article>
+        <article class="card"><span>06</span><h3>Domestic transport</h3><p>Metro and interstate linehaul with consistent service levels and proof of delivery.</p></article>
+      </div>
+    </div>
+
+    <!-- reliability overlay (top-down road) -->
+    <div class="rel" id="rel">
+      <div class="rel__left">
+        <h2 class="h2">Reliability at every milestone</h2>
+        <p>One accountable team from pickup to proof of delivery — predictable, transparent, and easy to reach.</p>
+      </div>
+      <div class="rel__right">
+        <div class="rel__item"><i></i><h3>Real-time freight tracking</h3><p>Know where your cargo is at every milestone. Live visibility means faster decisions and no guesswork.</p></div>
+        <div class="rel__item"><i></i><h3>Global network coverage</h3><p>A partner network across every major trade corridor your business relies on.</p></div>
+        <div class="rel__item"><i></i><h3>24/7 customer support</h3><p>Real people, always available — for a routine update or an urgent problem.</p></div>
+      </div>
+    </div>
+
+    <!-- why-us overlay (ship) -->
+    <div class="why" id="why">
+      <p class="eyebrow">Why us</p>
+      <h2 class="h2">Logistics that works as hard as you do.</h2>
+      <div class="why__pts">
+        <div class="why__pt"><h3>One point of contact</h3><p>A named account manager who knows your freight and answers the phone.</p></div>
+        <div class="why__pt"><h3>Full supply chain visibility</h3><p>Every milestone in one place, from booking to final delivery.</p></div>
+        <div class="why__pt"><h3>Compliance you can trust</h3><p>Licensed brokers keep every shipment clean at the border.</p></div>
+        <div class="why__pt"><h3>Transparent pricing</h3><p>Clear quotes with no surprises after the cargo has moved.</p></div>
+      </div>
+    </div>
+
+    <div class="clouds" id="clouds" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <div class="whiteout" id="whiteout" aria-hidden="true"></div>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section class="testi" id="clients">
+  <svg class="plane" id="plane" viewBox="0 0 400 420" aria-hidden="true">
+    <ellipse cx="200" cy="210" rx="26" ry="200" fill="#fff" stroke="#d5d9e2" stroke-width="2"/>
+    <path d="M176 170 L10 280 L10 306 L176 262 Z M224 170 L390 280 L390 306 L224 262 Z" fill="#fff" stroke="#d5d9e2" stroke-width="2"/>
+    <path d="M182 360 L120 404 L120 416 L186 400 Z M218 360 L280 404 L280 416 L214 400 Z" fill="#fff" stroke="#d5d9e2" stroke-width="2"/>
+    <rect x="86" y="222" width="18" height="40" rx="8" fill="#c9ced9"/><rect x="296" y="222" width="18" height="40" rx="8" fill="#c9ced9"/>
+    <path d="M186 40 Q200 22 214 40 L210 52 H190 Z" fill="#1b2a4d"/>
+    <path d="M196 330 H204 V400 H196 Z" fill="#2a45ff"/>
+  </svg>
+  <div class="testi__head">
+    <h2 class="h2" data-fill>Trusted by businesses across the region</h2>
+    <p>From first-time importers to high-volume shippers, customers stay because we treat their freight like our own.</p>
+  </div>
+  <div class="testi__list">
+    <figure class="quote"><div class="avatar" style="--h:210"></div><figcaption><b>Placeholder Client</b><span>Director, sample retail group</span></figcaption>
+      <blockquote>Sample quote: our business would not run without this team. Every consignment is planned on its merits, and our account manager actually knows us.</blockquote></figure>
+    <figure class="quote"><div class="avatar" style="--h:20"></div><figcaption><b>Placeholder Client</b><span>Supply chain lead, sample telecom supplier</span></figcaption>
+      <blockquote>Sample quote: as a first-time shipper into a major infrastructure project we were in uncharted territory. Relentless attention to detail got it delivered right the first time.</blockquote></figure>
+    <figure class="quote"><div class="avatar" style="--h:140"></div><figcaption><b>Placeholder Client</b><span>Operations manager, sample fashion brand</span></figcaption>
+      <blockquote>Sample quote: together we built a seamless, cost-effective supply chain. Always available, always ready to help, and the savings were real.</blockquote></figure>
+  </div>
+</section>
+
+<!-- ============ PARTNERS ============ -->
+<section class="partners">
+  <p class="eyebrow">Carrier network <small>(placeholder names)</small></p>
+  <div class="grid" id="partnerGrid"></div>
+</section>
+<div class="glow" aria-hidden="true"></div>
+
+<!-- ============ INSIGHTS ============ -->
+<section class="insights" id="insights">
+  <div class="insights__head">
+    <h2 class="h2" data-fill>What's moving in your industry</h2>
+    <p>Regulatory changes, new routes and supply chain trends — the short version.</p>
+  </div>
+  <ul class="rows" id="rows">
+    <li data-h="215"><time>Nov 2026 · Global</time><a href="#insights">Weekly focus: what shifted on the main east–west lanes</a><span>Read</span></li>
+    <li data-h="18"><time>Nov 2026 · Europe</time><a href="#insights">Port congestion eases as winter schedules settle</a><span>Read</span></li>
+    <li data-h="160"><time>Oct 2026 · Asia</time><a href="#insights">Storm season: how to plan buffers into your bookings</a><span>Read</span></li>
+    <li data-h="280"><time>Oct 2026 · Middle East</time><a href="#insights">Export relief schemes and what they mean for margins</a><span>Read</span></li>
+    <li data-h="45"><time>Sep 2026 · Asia Pacific</time><a href="#insights">Ocean rates are moving higher — what to lock in now</a><span>Read</span></li>
+  </ul>
+  <div class="rows__preview" id="preview" aria-hidden="true"></div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="faq" id="faq">
+  <div class="faq__head"><h2 class="h2">F.A.Q</h2><p>Straightforward answers, so you can move forward with confidence.</p></div>
+  <div class="faq__list" id="faqList">
+    <details><summary>What does Northlane do?</summary><div><p>End-to-end freight forwarding: air, ocean, customs brokerage, warehousing and road transport.</p></div></details>
+    <details><summary>Which industries do you work with?</summary><div><p>Retail, fashion, food and beverage, industrial, project cargo and technology.</p></div></details>
+    <details><summary>Which shipping methods do you offer?</summary><div><p>Air freight, full and shared container ocean freight, breakbulk, roll-on/roll-off and multimodal.</p></div></details>
+    <details><summary>Do you handle customs clearance?</summary><div><p>Yes. Licensed in-house brokers manage import and export clearances.</p></div></details>
+    <details><summary>How is pricing calculated?</summary><div><p>By size, weight, origin, destination, mode of transport and current market conditions.</p></div></details>
+    <details><summary>Can you move oversized cargo?</summary><div><p>Yes — out-of-gauge and heavy-lift shipments are a specialty.</p></div></details>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta" id="contact">
+  <div class="rings" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <h2 class="h1" data-fill>Ready to move smarter?</h2>
+  <p>No call centres. No runaround. Just experienced people ready to help.</p>
+  <a class="btn btn--light" href="mailto:hello@northlane.example">Work with us</a>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer__top">
+    <p class="footer__tag">One operator.<br>Every leg of the journey.</p>
+    <ul><li><b>Company</b></li><li><a href="#top">Home</a></li><li><a href="#about">About</a></li><li><a href="#insights">Insights</a></li><li><a href="#contact">Contact</a></li></ul>
+    <ul><li><b>Services</b></li><li>Air freight</li><li>Ocean freight</li><li>Customs brokerage</li><li>Warehousing &amp; 3PL</li></ul>
+    <canvas class="dotmap dotmap--foot" data-dotmap data-color="#c3c7d1" data-accent="#2a45ff"></canvas>
+  </div>
+  <div class="wordmark" id="wordmark" aria-hidden="true">NORTHLANE</div>
+  <p class="footer__legal">Practice project. Northlane Freight is a fictional company; names and quotes are placeholders.</p>
+</footer>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

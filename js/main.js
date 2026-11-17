@@ -3,18 +3,8 @@
   gsap.registerPlugin(ScrollTrigger);
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const skipLoader = reduced || /noloader/.test(location.search);
-
-  /* ---------- smooth scroll ---------- */
-  let lenis = null;
-  if (!reduced) {
-    lenis = new Lenis({ lerp: 0.09 });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add(t => lenis.raf(t * 1000));
-    gsap.ticker.lagSmoothing(0);
-  }
-  const scrollTo = target => lenis ? lenis.scrollTo(target, { duration: 1.6 }) : $(target).scrollIntoView();
+  const { lenis, reduced } = window.NL;
+  const skipLoader = reduced || /noloader/.test(location.search) || document.documentElement.classList.contains('arriving');
 
   /* ---------- dotted world map ---------- */
   const MAP = [
@@ -98,25 +88,6 @@
       .set('.loader', { display: 'none' });
   }
 
-  /* ---------- menu ---------- */
-  const menuBtn = $('#menuBtn'), menu = $('#menu');
-  const menuTl = gsap.timeline({ paused: true })
-    .set(menu, { visibility: 'visible' })
-    .to(menu, { clipPath: 'inset(0 0 0% 0)', duration: .8, ease: 'expo.inOut' })
-    .from('.menu a span', { yPercent: 110, duration: .7, ease: 'expo.out', stagger: .05 }, .35);
-  const setMenu = open => {
-    menuBtn.setAttribute('aria-expanded', open); menu.setAttribute('aria-hidden', !open);
-    $('span', menuBtn).textContent = open ? 'Close' : 'Menu';
-    open ? menuTl.play() : menuTl.reverse();
-    lenis && (open ? lenis.stop() : lenis.start());
-  };
-  menuBtn.addEventListener('click', () => setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'));
-  addEventListener('keydown', e => e.key === 'Escape' && setMenu(false));
-  $$('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
-    const id = a.getAttribute('href'); if (id.length < 2 || !$(id)) return;
-    e.preventDefault(); if (menu.contains(a)) setMenu(false); scrollTo(id);
-  }));
-
   /* =====================================================================
      JOURNEY — one pinned, scrubbed timeline
      A  yard (side view): stacker lifts a container onto a truck
@@ -150,6 +121,7 @@
     d: 1100, cy: 0, z: 1                                            // scenes B + C camera
   };
   let vw = innerWidth, vh = innerHeight;
+  const cam = { x: 0, y: 0, s: 1, on: false };
 
   function render() {
     const held = tl.time() < T_RELEASE;
@@ -178,6 +150,7 @@
     const ang = Math.atan2(q.y - p.y, q.x - p.x) * 57.2958;
     truckTop.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang})`);
     world.setAttribute('transform', `translate(${vw / 2} ${vh / 2}) scale(${s}) translate(${-p.x} ${-(p.y + st.cy)})`);
+    cam.x = p.x; cam.y = p.y + st.cy; cam.s = s; cam.on = tl.time() > 10.1;
   }
 
   const io = 'power2.inOut';
@@ -222,7 +195,8 @@
     .to(truckTop, { opacity: 0, duration: .3 }, 17.0)
     .to(st, { cy: 520, duration: 1.8, ease: 'power1.inOut' }, 17.2)
     .to('#road', { opacity: 0, duration: .5 }, 19)
-    .to(['#seaCover', '#wake'], { opacity: 1, duration: .8 }, 19)
+    .to('#wake', { opacity: 1, duration: .8 }, 19)
+    .to('#land', { opacity: 0, duration: .8 }, 19)
     .to(st, { z: .27, cy: 860, duration: 2, ease: io }, 19)
     .fromTo('#why', { autoAlpha: 0 }, { autoAlpha: 1, duration: .1 }, 20.3)
     .from(['#why .eyebrow', '#why .h2'], { opacity: 0, y: 40, stagger: .15, duration: .6 }, 20.3)
@@ -232,6 +206,78 @@
     .to('#why', { autoAlpha: 0, duration: .4 }, 23.2)
     .to('#whiteout', { opacity: 1, duration: .6 }, 23.6);
   render();
+
+  /* ---------- real-time water (WebGL) ---------- */
+  (() => {
+    const cv = el('seaGL'), gl = cv.getContext('webgl', { antialias: false, alpha: false });
+    if (!gl) return;
+    const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, `precision highp float;
+      uniform vec2 uRes,uCam;uniform float uScale,uTime;
+      float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+      float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+        return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+      float fbm(vec2 p){float a=.5,v=0.;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+7.;a*=.5;}return v;}
+      void main(){
+        vec2 px=gl_FragCoord.xy-.5*uRes;px.y=-px.y;
+        vec2 q=(uCam+px/uScale)*.0034;float t=uTime*.22;
+        float swell=fbm(q*vec2(1.,1.7)+vec2(t,t*.6));
+        float chop=fbm(q*3.3-vec2(t*1.4,-t)+swell*1.6);
+        float crest=pow(1.-abs(2.*chop-1.),3.);
+        float glint=pow(1.-abs(2.*fbm(q*9.+vec2(-t*2.,t*1.7)+chop)-1.),14.);
+        vec3 c=mix(vec3(.015,.07,.30),vec3(.04,.20,.66),smoothstep(.2,.8,swell));
+        c+=vec3(.25,.42,.95)*crest*.13*smoothstep(.25,.8,swell);
+        c+=vec3(.8,.9,1.)*glint*.16*smoothstep(.45,.8,swell);
+        float v=length(px/uRes);c*=1.-.35*v*v;
+        gl_FragColor=vec4(c,1.);}`));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const U = k => gl.getUniformLocation(prog, k), uRes = U('uRes'), uCam = U('uCam'), uScale = U('uScale'), uTime = U('uTime');
+    $$('.sea-fill').forEach(r => r.style.display = 'none');   // GL replaces the flat fill
+    cv.classList.add('is-live');
+    const size = () => { const d = Math.min(devicePixelRatio || 1, 1.5); cv.width = innerWidth * d; cv.height = innerHeight * d; gl.viewport(0, 0, cv.width, cv.height); };
+    size(); addEventListener('resize', size);
+    let t0 = performance.now(), shown = null;
+    gsap.ticker.add(() => {
+      const show = cam.on && cam.y > 800;                       // only paint while the sea can be seen
+      if (show !== shown) { shown = show; cv.style.visibility = show ? 'visible' : 'hidden'; }
+      if (!show) return;
+      const d = cv.width / innerWidth;
+      gl.uniform2f(uRes, cv.width, cv.height); gl.uniform2f(uCam, cam.x, cam.y);
+      gl.uniform1f(uScale, cam.s * d); gl.uniform1f(uTime, reduced ? 0 : (performance.now() - t0) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    });
+  })();
+
+  /* ---------- generated cloud sprites ---------- */
+  (() => {
+    const N = 256, perm = new Uint8Array(512); let sd = 11;
+    const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 256; i++) perm[i] = i;
+    for (let i = 255; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
+    for (let i = 0; i < 256; i++) perm[i + 256] = perm[i];
+    const v = (x, y) => perm[(perm[x & 255] + y) & 255] / 255;
+    const noise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y); let fx = x - xi, fy = y - yi; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+      return (v(xi, yi) * (1 - fx) + v(xi + 1, yi) * fx) * (1 - fy) + (v(xi, yi + 1) * (1 - fx) + v(xi + 1, yi + 1) * fx) * fy; };
+    const fbm = (x, y) => { let a = .5, s = 0; for (let i = 0; i < 5; i++) { s += a * noise(x, y); x = x * 2 + 13; y = y * 2 + 5; a *= .5; } return s; };
+    const urls = [0, 1, 2].map(k => {
+      const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d'), im = x.createImageData(N, N);
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const u = i / N - .5, w = j / N - .5, fall = Math.max(0, 1 - Math.hypot(u * 1.9, w * 2.5) * 1.05);
+        const d = Math.max(0, Math.min(1, (fbm(i / 46 + k * 31, j / 46 + k * 17) * 1.5 - .55 + fall * .9) * fall * 2.6));
+        const o = (j * N + i) * 4, lit = .78 + .22 * Math.min(1, d * 1.3 + (.5 - w) * .5);
+        im.data[o] = 236 * lit + 19; im.data[o + 1] = 240 * lit + 15; im.data[o + 2] = 255; im.data[o + 3] = 255 * Math.pow(d, .8);
+      }
+      x.putImageData(im, 0, 0); return c.toDataURL();
+    });
+    $$('.clouds i').forEach((c, i) => { c.style.backgroundImage = `url(${urls[i % 3]})`; });
+  })();
 
   // speedometer driven by real scroll velocity
   const hudNum = $('#hudNum'); let speed = 0, lastY = scrollY;

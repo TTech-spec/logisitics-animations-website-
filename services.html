@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Services — Northlane Freight</title>
+<meta name="description" content="Practice build: a scroll-driven logistics site. Air, ocean, customs, warehousing and road freight under one team.">
+<script>if(sessionStorage.getItem("nlWipe"))document.documentElement.classList.add("arriving")</script>
+<link rel="stylesheet" href="vendor/lenis.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wipe" id="wipe" aria-hidden="true"><b>NORTHLANE</b></div>
+<div class="cursor" id="cursor" aria-hidden="true"><i></i></div>
+<div class="ticker" aria-label="Latest news">
+  <b>News</b>
+  <div class="ticker__run"><p><span>East–west lanes: what shifted</span><span>Port congestion eases</span><span>Planning for storm season</span><span>Ocean rates are rising</span><span>East–west lanes: what shifted</span><span>Port congestion eases</span><span>Planning for storm season</span><span>Ocean rates are rising</span></p></div>
+  <a href="services.html">Services →</a>
+</div>
+<header class="header">
+  <a class="logo" href="index.html" aria-label="Northlane Freight home">NORTHLANE</a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu"><span>Menu</span><i></i></button>
+</header>
+<a class="side-tab" href="#contact">Work with us</a>
+
+<nav class="menu" id="menu" aria-hidden="true">
+  <ul>
+    <li><a href="index.html"><span>Home</span></a></li>
+    <li><a href="index.html#about"><span>About</span></a></li>
+    <li><a href="services.html"><span>Services</span></a></li>
+    <li><a href="index.html#clients"><span>Clients</span></a></li>
+    <li><a href="index.html#insights"><span>Insights</span></a></li>
+    <li><a href="index.html#faq"><span>F.A.Q</span></a></li>
+    <li><a href="#contact"><span>Contact</span></a></li>
+  </ul>
+  <p class="menu__foot">hello@northlane.example</p>
+</nav>
+
+<main>
+<section class="page-head">
+  <p class="eyebrow" style="color:#fff">Services</p>
+  <h1 class="h1" data-rise>Six services.<br>One team.</h1>
+  <p data-rise>Everything your freight needs, under one group.</p>
+</section>
+<section class="svc"><ul>
+  <li data-rise><span>01</span><h2>Air freight</h2><p>Fast, scheduled, global.</p></li>
+  <li data-rise><span>02</span><h2>Ocean freight</h2><p>Full and shared containers.</p></li>
+  <li data-rise><span>03</span><h2>Customs</h2><p>Licensed in-house brokers.</p></li>
+  <li data-rise><span>04</span><h2>Warehousing</h2><p>Store, pick, pack, ship.</p></li>
+  <li data-rise><span>05</span><h2>Project cargo</h2><p>Oversized and complex.</p></li>
+  <li data-rise><span>06</span><h2>Road transport</h2><p>Metro and interstate.</p></li>
+</ul></section>
+<!-- ============ CTA ============ -->
+<section class="cta" id="contact">
+  <div class="rings" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <h2 class="h1">Ready to move smarter?</h2>
+  <p>Real people. Fast answers.</p>
+  <a class="btn btn--light" href="mailto:hello@northlane.example">Work with us</a>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer__top">
+    <p class="footer__tag">One operator.<br>Every leg of the journey.</p>
+    <ul><li><b>Company</b></li><li><a href="index.html">Home</a></li><li><a href="services.html">Services</a></li><li><a href="index.html#insights">Insights</a></li><li><a href="#contact">Contact</a></li></ul>
+    <ul><li><b>Services</b></li><li>Air freight</li><li>Ocean freight</li><li>Customs brokerage</li><li>Warehousing &amp; 3PL</li></ul>
+    <span></span>
+  </div>
+  <div class="wordmark" aria-hidden="true">NORTHLANE</div>
+  <p class="footer__legal">Practice project. Northlane Freight is a fictional company; names and quotes are placeholders.</p>
+</footer>
+
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/ScrollTrigger.min.js"></script>
+<script src="vendor/lenis.min.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

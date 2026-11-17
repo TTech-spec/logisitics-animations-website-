@@ -123,8 +123,8 @@
         <image id="ship" href="assets/uc/ship.avif" x="-175" y="2560" width="350" height="1713.6"/>
         <g id="truckTop">
           <rect x="-190" y="-40" width="380" height="96" rx="8" fill="#000" opacity=".45" style="filter:blur(9px)"/>
-          <image href="assets/uc/container-top.avif" x="-200" y="-56.2" width="400" height="112.4"/>
-          <image href="assets/uc/truck-top.avif" x="-200" y="-56.2" width="400" height="112.4"/>
+          <image id="contTop" href="assets/uc/container-top.avif" x="-200" y="-56.2" width="400" height="112.4"/>
+          <image id="cabTop" href="assets/uc/truck-top.avif" x="-200" y="-56.2" width="400" height="112.4"/>
         </g>
       </g>
     </svg>
@@ -132,17 +132,17 @@
     <!-- big ghost title that slides behind the truck -->
     <div class="bigtext" id="bigtext" aria-hidden="true">OUR SERVICES — OUR SERVICES —</div>
 
-    <!-- side-view yard scene -->
+    <!-- side-view yard scene: 3D frame sequences, as on the reference site -->
     <div class="side" id="side">
-      <div class="yard" id="yard">
-        <div class="yard__set" id="yardSet">
-          <img class="yard__crane" src="assets/uc/crane.avif" alt="">
-          <img class="yard__box" style="left:69%" src="assets/uc/container-blue.avif" alt="">
-          <img class="yard__box" style="left:79.2%" src="assets/uc/container-orange.avif" alt="">
-          <img class="yard__box" id="lift" src="assets/uc/container-white.avif" alt="">
+      <div class="scene" id="scene">
+        <div class="cranew" id="craneW">
+          <canvas class="crane-sq" id="craneSq" width="1600" height="900"></canvas>
+          <div class="stack" id="stack"><img src="assets/uc/container-blue.avif" alt=""><img src="assets/uc/container-orange.avif" alt=""></div>
+          <img class="crane-out" id="craneBot" src="assets/uc/crane-bot.avif" alt="">
+          <img class="crane-out" id="craneTop" src="assets/uc/crane-top.avif" alt="">
         </div>
-        <img class="yard__truck" id="truckSide" src="assets/uc/truck-static.avif" alt="">
       </div>
+
     </div>
 
     <!-- rising ground with services -->
@@ -161,6 +161,22 @@
         <article class="card"><span>06</span><h3>Road transport</h3><p>Metro and interstate.</p></article>
       </div>
     </div>
+
+    <!-- truck layer (above the ground so it can settle onto the road) -->
+    <div class="truckw" id="truckW">
+        <div class="truck-inner" id="truckInner">
+          <div id="truckParts">
+            <img class="t-part" src="assets/uc/only-car.avif" alt="">
+            <img class="t-part" id="truckCont" src="assets/uc/only-container.avif" alt="">
+            <img class="wheel" style="left:87.43%;top:69.26%;width:7.09%" src="assets/uc/wheel-front.avif" alt="">
+            <img class="wheel" style="left:64.67%;top:72.73%;width:6.19%" src="assets/uc/wheel-back.avif" alt="">
+            <img class="wheel" style="left:30.94%;top:72.73%;width:6.19%" src="assets/uc/wheel-back.avif" alt="">
+            <img class="wheel" style="left:23.45%;top:72.73%;width:6.19%" src="assets/uc/wheel-back.avif" alt="">
+            <img class="wheel" style="left:15.47%;top:72.73%;width:6.19%" src="assets/uc/wheel-back.avif" alt="">
+          </div>
+          <canvas class="truck-sq" id="truckSq" width="1440" height="405"></canvas>
+        </div>
+      </div>
 
     <!-- reliability overlay (top-down road) -->
     <div class="rel" id="rel">

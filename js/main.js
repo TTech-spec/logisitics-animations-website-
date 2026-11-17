@@ -162,15 +162,39 @@
      ===================================================================== */
   const stage = $('#stage'), track = $('#track'), bigtext = $('#bigtext'), lane = $('#lane');
   const el = id => document.getElementById(id);
-  const yard = el('yard'), yardSet = el('yardSet'), lift = el('lift'), truckSide = el('truckSide');
-  const world = el('world'), roadPath = el('roadPath'), truckTop = el('truckTop');
-  const CH = 10.2 * (428 / 369) * (16 / 9);   // container height as % of the yard stage
+  const scene = el('scene'), stack = el('stack'), craneW = el('craneW'), craneSq = el('craneSq'), craneTop = el('craneTop'), craneBot = el('craneBot');
+  const truckW = el('truckW'), truckInner = el('truckInner'), truckParts = el('truckParts'), truckCont = el('truckCont'), truckSq = el('truckSq'), wheels = $$('.wheel');
+  const world = el('world'), roadPath = el('roadPath'), truckTop = el('truckTop'), contTop = el('contTop'), cabTop = el('cabTop');
+
+  /* Scroll-scrubbed image sequence drawn to a canvas (nearest loaded frame wins). */
+  class Seq {
+    constructor(cv, dir, n, clear) {
+      this.cv = cv; this.ctx = cv.getContext('2d'); this.n = n; this.clear = clear; this.im = new Array(n); this.cur = -1; this.want = 0;
+      let next = 0; const load = () => { if (next >= n) return; const i = next++, im = new Image();
+        im.onload = () => { this.im[i] = im; if (this.cur < 0 || Math.abs(i - this.want) <= Math.abs(this.cur - this.want)) this.draw(this.want); load(); };
+        im.onerror = load; im.src = `assets/uc/seq/${dir}/${String(i).padStart(3, '0')}.avif`; };
+      for (let k = 0; k < 6; k++) load();
+    }
+    draw(f) {
+      this.want = f = Math.max(0, Math.min(this.n - 1, Math.round(f)));
+      let i = f; for (let k = 0; k < this.n && !this.im[i]; k++) { const a = f - k, b = f + k; i = this.im[a] ? a : this.im[b] ? b : i; }
+      if (!this.im[i] || i === this.cur) return;
+      this.cur = i; if (this.clear) this.ctx.clearRect(0, 0, this.cv.width, this.cv.height);
+      this.ctx.drawImage(this.im[i], 0, 0, this.cv.width, this.cv.height);
+    }
+  }
+  const craneSeq = new Seq(craneSq, 'crane', 226, false), truckSeq = new Seq(truckSq, 'tsq', 45, true);
 
   const st = {
-    liftL: 69, liftB: CH, yardX: 0, yardO: 1, truckL: 105, yardS: 1, travel: 0,   // scene A
-    gt: 86, gb: 0,                                                                 // ground band (vh)
-    d: 1100, cy: 0, z: 1                                                           // scenes B + C camera
+    // scene A (measured from the reference: lengths in vw, see timeline)
+    frame: 0, craneX: -19.3, sqY: 0, sqR: 0, sqS: 1, stackX: 0, stackS: 1, stackY: 0, stackB: 0, craneWX: 0,
+    truckX: 100, wheel: 0, sceneS: 1, sceneX: 0, sceneY: 0, sceneB: 0, topY: 0, innerS: 1, innerX: 0, tk: 0, tframe: 0,
+    gt: 90.74, gb: 0,                 // ground band (vh)
+    d: 1100, cy: 0, z: 1, zk: 1       // scenes B + C camera
   };
+  const T_SWAP = 450, T_TSQ = 925, T_WORLD = 990;
+  const z0 = () => (.448 * vw / 400) / (.36 * vh / 220);          // world zoom that matches the side-view truck
+  const bandGt = () => (100 - 220 * (.448 * vw / 400) / vh * 100) / 2;
   let vw = innerWidth, vh = innerHeight;
   const cam = { x: 0, y: 0, s: 1, on: false };
 
@@ -179,71 +203,107 @@
     stage.style.setProperty('--gb', st.gb + 'vh');
 
     // A — yard
-    lift.style.left = st.liftL + '%'; lift.style.bottom = st.liftB + '%';
-    yardSet.style.transform = `translateX(${st.yardX}%)`; yardSet.style.opacity = st.yardO;
-    truckSide.style.left = st.truckL + '%';
-    yard.style.transform = `translateX(-50%) scale(${st.yardS})`;
-    lane.style.backgroundPositionX = -st.travel * .5 + 'px';
+    const t = tl.time(), put = t >= T_SWAP, top = t >= T_TSQ;
+    craneSeq.draw(st.frame); truckSeq.draw(st.tframe);
+    scene.style.transform = `translate(${st.sceneX}%, ${st.sceneY}vw) scale(${st.sceneS})`;
+    scene.style.filter = st.sceneB ? `blur(${st.sceneB}px)` : '';
+    stack.style.transform = `translate(${st.stackX}%, ${st.stackY}%) scale(${st.stackS})`;
+    stack.style.filter = st.stackB ? `blur(${st.stackB}px)` : '';
+    craneW.style.transform = `translateX(${st.craneWX}%)`;
+    craneSq.style.transform = `translate(${st.craneX}vw, ${st.sqY}vw) rotate(${st.sqR}deg) scale(${st.sqS})`;
+    craneSq.style.visibility = put ? 'hidden' : 'visible';
+    craneBot.style.visibility = craneTop.style.visibility = put ? 'visible' : 'hidden';
+    craneTop.style.transform = `translateY(${st.topY}%)`;
+    truckW.style.transform = `translateX(${st.truckX}vw)`;
+    truckCont.style.visibility = put ? 'visible' : 'hidden';
+    truckParts.style.visibility = top ? 'hidden' : 'visible';
+    truckSq.style.visibility = top ? 'visible' : 'hidden';
+    truckSq.style.transform = `scale(${1 + .086 * st.tk})`;
+    const ty = st.tk * ((50 - st.gt) / 100 * vh + .0499 * vw);
+    truckInner.style.transform = `translate(${st.innerX * (1 - st.tk) + st.tk * 15.97}vw, ${ty}px) scale(${st.innerS})`;
+    wheels.forEach(w => { w.style.transform = `rotate(${st.wheel}deg)`; });
+    lane.style.backgroundPositionX = st.wheel * .5 + 'px';
 
     // B + C — top-down world
-    const s = .36 * vh / 220 * st.z;
+    const s = .36 * vh / 220 * st.z * (1 + (z0() - 1) * st.zk);
     const p = roadPath.getPointAtLength(st.d), q = roadPath.getPointAtLength(st.d + 2);
     const ang = Math.atan2(q.y - p.y, q.x - p.x) * 57.2958;
     truckTop.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${ang})`);
+    const tan = dd => { const a = roadPath.getPointAtLength(dd), b = roadPath.getPointAtLength(dd + 2); return Math.atan2(b.y - a.y, b.x - a.x) * 57.2958; };
+    cabTop.setAttribute('transform', `rotate(${(tan(st.d + 120) - ang) * .5} 110 0)`);   // cab leads into the bend,
+    contTop.setAttribute('transform', `rotate(${(tan(st.d - 130) - ang) * .5} 110 0)`);  // trailer swings out behind it
     world.setAttribute('transform', `translate(${vw / 2} ${vh / 2}) scale(${s}) translate(${-p.x} ${-(p.y + st.cy)})`);
-    cam.x = p.x; cam.y = p.y + st.cy; cam.s = s; cam.on = tl.time() > 10.1;
+    cam.x = p.x; cam.y = p.y + st.cy; cam.s = s; cam.on = tl.time() > T_WORLD;
   }
 
   const io = 'power2.inOut';
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: {
-      trigger: '#journey', start: 'top top', end: () => '+=' + innerHeight * 11,
+      trigger: '#journey', start: 'top top', end: () => '+=' + innerHeight * 15.85,
       pin: stage, scrub: .7, invalidateOnRefresh: true, anticipatePin: 1,
       onRefresh: () => { vw = innerWidth; vh = innerHeight; render(); }
     },
     onUpdate: render
   });
 
+  /* One timeline unit = 1vh of scroll. Scene A positions and lengths are the reference site's own. */
+  const sine = 'sine.inOut';
   // A — yard
-  tl.to('#hud', { opacity: 1, duration: .3 }, .1)
-    .to(st, { liftL: 56.8, duration: 1.8 }, 0)
-    .to(st, { liftB: CH + 14, duration: .9, ease: 'power1.out' }, 0)
-    .to(st, { liftB: 31.1, duration: .9, ease: 'power1.inOut' }, .9)
-    .to(st, { yardX: -75, duration: 2.2, ease: 'power1.in' }, 2)
-    .to(st, { yardO: 0, duration: 1.2 }, 3)
-    .to(st, { truckL: 22, duration: 2.6, ease: 'power2.out' }, 2.2)
-    .to(st, { gt: 52, yardS: .62, duration: 1.2, ease: io }, 5.4)
-    .to(st, { travel: 9000, duration: 5.2, ease: 'power1.in' }, 5.2)
-    .to(bigtext, { opacity: 1, duration: .5 }, 5.6)
-    .fromTo(bigtext, { x: () => innerWidth * .7 }, { x: () => -(bigtext.scrollWidth - innerWidth * .4), duration: 5 }, 5.6)
-    .to([track, lane], { opacity: 1, duration: .6 }, 5.9)
-    .to(track, { x: () => -(track.scrollWidth - innerWidth), duration: 3.1 }, 6.8)
-    // A → B: the ground folds into a road and the camera flips overhead
-    .to([track, lane, bigtext, '#hud'], { opacity: 0, duration: .4 }, 10)
-    .fromTo(['#worldSvg', '#seabg'], { autoAlpha: 0 }, { autoAlpha: 1, duration: .05 }, 10.15)
-    .to('#side', { opacity: 0, duration: .35 }, 10)
-    .to(st, { gt: 32, gb: 32, duration: .7, ease: io }, 10.2)
-    .to('#ground', { opacity: 0, duration: .35 }, 10.6)
+  tl.to('#hud', { opacity: 1, duration: 20 }, 10)
+    .to(st, { craneX: 0, duration: 100 }, 0)                                  // stacker rolls in from the left
+    .to(st, { frame: 225, duration: 350 }, 100)                               // lift → turn to face us → lower
+    .to(st, { stackX: 80, stackS: .85, stackY: 8, stackB: 3, duration: 83 }, 250)
+    .to(st, { sqY: .58, sqR: .5, duration: 25 }, 250)
+    .to(st, { sqY: .69, sqR: -3, duration: 33 }, 275)
+    .to(st, { sqR: 0, duration: 25 }, 308)
+    .to(st, { craneWX: 20.9, duration: 83 }, 333)
+    .to(st, { sqS: .9, sqY: -.556, duration: 83 }, 345)
+    .to(st, { truckX: 0, duration: 95 }, 345)                                 // empty trailer drives in underneath
+    .fromTo(st, { wheel: 1440 }, { wheel: 0, duration: 95 }, 345)
+    // container is now on the trailer: ground rises, stacker lets go and leaves
+    .to(st, { gt: 40, innerS: .6, sceneS: .55, topY: -18, duration: 142, ease: sine }, T_SWAP)
+    .to(st, { sceneX: -80, sceneY: .29, sceneB: 5, duration: 141 }, 507)
+    .to(st, { wheel: -2880, duration: 141 }, 507)
+    .to(st, { wheel: -7200, duration: 284 }, 648)
+    .to(st, { innerX: -7.99, duration: 81 }, 575)
+    .to(st, { innerX: 5.49, duration: 276 }, 656)
+    .to(bigtext, { opacity: 1, duration: 1 }, 575)
+    .fromTo(bigtext, { x: () => innerWidth }, { x: () => -bigtext.scrollWidth, duration: 425 }, 575)
+    .to([track, lane], { opacity: 1, duration: 40 }, 545)
+    .to(track, { x: () => -(track.scrollWidth - innerWidth), duration: 320 }, 600)
+    // A → B: truck turns to the overhead view while the ground folds into a road
+    .to([track, lane, '#hud'], { opacity: 0, duration: 25 }, 915)
+    .to(bigtext, { opacity: 0, duration: 30 }, 925)
+    .to(st, { tframe: 44, duration: 80 }, 920)
+    .to(st, { tk: 1, duration: 75, ease: sine }, T_TSQ)
+    .to(st, { gt: bandGt, gb: bandGt, duration: 70, ease: sine }, T_TSQ)
+    .fromTo(['#worldSvg', '#seabg'], { autoAlpha: 0 }, { autoAlpha: 1, duration: 1 }, T_WORLD)
+    .to(['#side', '#ground', '#truckW'], { opacity: 0, duration: 8 }, T_WORLD + 2);
+
+  // B + C keep their own pacing (old units), mapped onto the vh timeline after scene A
+  const K = 45, P = v => 1000 + (v - 11.2) * K;
+  tl
   // B — road
-    .to(st, { d: 5485, duration: 6 }, 11.2)
-    .fromTo('#rel', { autoAlpha: 0 }, { autoAlpha: 1, duration: .3 }, 14.0)
-    .from('.rel__left > *', { opacity: 0, y: 30, stagger: .12, duration: .4 }, 14.0)
-    .from('.rel__item', { opacity: 0, y: 30, stagger: .25, duration: .4 }, 14.2)
-    .to('#rel', { autoAlpha: 0, duration: .35 }, 15.75)
+    .to(st, { d: 5485, duration: 6 * K }, P(11.2))
+    .to(st, { zk: 0, duration: 1.4 * K, ease: sine }, P(11.2))
+    .fromTo('#rel', { autoAlpha: 0 }, { autoAlpha: 1, duration: .3 * K }, P(14.0))
+    .from('.rel__left > *', { opacity: 0, y: 30, stagger: .12 * K, duration: .4 * K }, P(14.0))
+    .from('.rel__item', { opacity: 0, y: 30, stagger: .25 * K, duration: .4 * K }, P(14.2))
+    .to('#rel', { autoAlpha: 0, duration: .35 * K }, P(15.75))
   // C — sea
-    .to(truckTop, { opacity: 0, duration: .3 }, 17.0)
-    .to(st, { cy: 520, duration: 1.8, ease: 'power1.inOut' }, 17.2)
-    .to('#road', { opacity: 0, duration: .5 }, 19)
-    .to('#land', { opacity: 0, duration: .8 }, 19)
-    .to(st, { z: .27, cy: 717, duration: 2, ease: io }, 19)
-    .fromTo('#why', { autoAlpha: 0 }, { autoAlpha: 1, duration: .1 }, 20.3)
-    .from(['#why .eyebrow', '#why .h2'], { opacity: 0, y: 40, stagger: .15, duration: .6 }, 20.3)
-    .from('.why__pt', { opacity: 0, y: 24, stagger: .3, duration: .5 }, 20.9)
-    .to(st, { z: .2, duration: 1.6, ease: 'power1.in' }, 22.6)
-    .fromTo('.clouds i', { opacity: 0, scale: .45 }, { opacity: 1, scale: 1.5, stagger: .1, duration: 1, ease: 'power1.in' }, 22.5)
-    .to('#why', { autoAlpha: 0, duration: .4 }, 23.2)
-    .to('#whiteout', { opacity: 1, duration: .6 }, 23.6);
+    .to(truckTop, { opacity: 0, duration: .3 * K }, P(17.0))
+    .to(st, { cy: 520, duration: 1.8 * K, ease: 'power1.inOut' }, P(17.2))
+    .to('#road', { opacity: 0, duration: .5 * K }, P(19))
+    .to('#land', { opacity: 0, duration: .8 * K }, P(19))
+    .to(st, { z: .27, cy: 717, duration: 2 * K, ease: io }, P(19))
+    .fromTo('#why', { autoAlpha: 0 }, { autoAlpha: 1, duration: .1 * K }, P(20.3))
+    .from(['#why .eyebrow', '#why .h2'], { opacity: 0, y: 40, stagger: .15 * K, duration: .6 * K }, P(20.3))
+    .from('.why__pt', { opacity: 0, y: 24, stagger: .3 * K, duration: .5 * K }, P(20.9))
+    .to(st, { z: .2, duration: 1.6 * K, ease: 'power1.in' }, P(22.6))
+    .fromTo('.clouds i', { opacity: 0, scale: .45 }, { opacity: 1, scale: 1.5, stagger: .1 * K, duration: 1 * K, ease: 'power1.in' }, P(22.5))
+    .to('#why', { autoAlpha: 0, duration: .4 * K }, P(23.2))
+    .to('#whiteout', { opacity: 1, duration: .6 * K }, P(23.6));
   render();
 
   // speedometer driven by real scroll velocity

@@ -342,3 +342,22 @@ body{padding-bottom:34px}
 .clouds i:nth-child(4n+3){background-image:url(../assets/uc/cloud-bottom.avif)}
 .clouds i:nth-child(4n){background-image:url(../assets/uc/cloud-template.avif)}
 .plane{width:clamp(420px,62vw,1150px);filter:drop-shadow(0 50px 50px rgba(20,30,70,.18))}
+
+/* ---------- yard scene, laid out to the reference measurements (all in vw) ---------- */
+.side{pointer-events:none}
+.scene{position:absolute;left:0;bottom:0;width:100vw;aspect-ratio:16/9;transform-origin:-5% 100%}
+.stack{position:absolute;left:62.5vw;bottom:0;width:21.39vw;display:flex}
+.stack img{width:50%}
+.cranew{position:absolute;inset:0}
+.crane-sq{position:absolute;left:-17.43vw;bottom:-9.44vw;width:92.99vw;aspect-ratio:16/9;height:auto;mix-blend-mode:multiply;transform-origin:50% 100%}
+.crane-out{position:absolute;left:-12.78vw;bottom:-8.96vw;width:83.68vw;visibility:hidden}
+.truckw{position:absolute;left:0;bottom:-.14vw;width:100vw;height:22.64vw}
+.truck-inner{position:absolute;left:13.33vw;bottom:0;width:69.58vw;aspect-ratio:2664/614;transform-origin:0 100%}
+.t-part{position:absolute;inset:0;width:100%;height:100%}
+.wheel{position:absolute;aspect-ratio:1}
+.truck-sq{position:absolute;left:-2.5%;bottom:-11.7%;width:104.3%;aspect-ratio:2880/809;height:auto;visibility:hidden}
+.bigtext{font-size:28vh;bottom:calc(100vh - var(--gt) + .01em)}
+
+.truckw{bottom:calc(100% - var(--gt) - .14vw);z-index:4;pointer-events:none}
+.stack{z-index:1}
+.crane-out{z-index:2}
